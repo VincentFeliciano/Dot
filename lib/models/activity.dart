@@ -12,6 +12,20 @@ class Activity {
     required this.color,
     this.dotsPerUnit = 1,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'color': color.toARGB32(),
+    'dotsPerUnit': dotsPerUnit,
+  };
+
+  factory Activity.fromJson(Map<String, dynamic> j) => Activity(
+    id: j['id'] as String,
+    name: j['name'] as String,
+    color: Color(j['color'] as int),
+    dotsPerUnit: j['dotsPerUnit'] as int? ?? 1,
+  );
 }
 
 class DotEntry {
@@ -24,4 +38,16 @@ class DotEntry {
     required this.color,
     required this.timestamp,
   });
+
+  Map<String, dynamic> toJson() => {
+    'activityId': activityId,
+    'color': color.toARGB32(),
+    'timestamp': timestamp.toIso8601String(),
+  };
+
+  factory DotEntry.fromJson(Map<String, dynamic> j) => DotEntry(
+    activityId: j['activityId'] as String,
+    color: Color(j['color'] as int),
+    timestamp: DateTime.parse(j['timestamp'] as String),
+  );
 }

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/activity.dart';
 import '../app_colors.dart';
 import '../widgets/date_panel.dart';
@@ -26,6 +28,33 @@ class _HomeScreenState extends State<HomeScreen> {
     _timer = Timer.periodic(const Duration(seconds: 60), (_) {
       setState(() => _now = DateTime.now());
     });
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final slotsJson = prefs.getString('slots');
+    final dotsJson = prefs.getString('dots');
+    if (slotsJson != null || dotsJson != null) {
+      setState(() {
+        if (slotsJson != null) {
+          final list = jsonDecode(slotsJson) as List;
+          for (int i = 0; i < 3; i++) {
+            _slots[i] = list[i] == null ? null : Activity.fromJson(list[i] as Map<String, dynamic>);
+          }
+        }
+        if (dotsJson != null) {
+          final list = jsonDecode(dotsJson) as List;
+          _dots.addAll(list.map((e) => DotEntry.fromJson(e as Map<String, dynamic>)));
+        }
+      });
+    }
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('slots', jsonEncode(_slots.map((s) => s?.toJson()).toList()));
+    await prefs.setString('dots', jsonEncode(_dots.map((d) => d.toJson()).toList()));
   }
 
   @override
@@ -54,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
           heightFactor: 0.5,
           alignment: Alignment.bottomCenter,
           child: ActivityModal(
-            onCreated: (a) => setState(() => _slots[index] = a),
+            onCreated: (a) { setState(() => _slots[index] = a); _save(); },
           ),
         ),
       ),
@@ -119,6 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.pop(ctx);
                 setState(() => _slots[index] = null);
+                _save();
               },
             ),
             const SizedBox(height: 8),
@@ -138,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
       }
     });
+    _save();
   }
 
   void _undo(String activityId) {
@@ -147,6 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (lastIndex != -1) _dots.removeAt(lastIndex);
       }
     });
+    _save();
   }
 
   @override
