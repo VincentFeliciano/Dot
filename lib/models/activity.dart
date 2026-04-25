@@ -28,6 +28,23 @@ class Activity {
   );
 }
 
+class DaySnapshot {
+  final DateTime date;
+  final List<DotEntry> dots;
+
+  DaySnapshot({required this.date, required this.dots});
+
+  Map<String, dynamic> toJson() => {
+    'date': date.toIso8601String(),
+    'dots': dots.map((d) => d.toJson()).toList(),
+  };
+
+  factory DaySnapshot.fromJson(Map<String, dynamic> j) => DaySnapshot(
+    date: DateTime.parse(j['date'] as String),
+    dots: (j['dots'] as List).map((e) => DotEntry.fromJson(e as Map<String, dynamic>)).toList(),
+  );
+}
+
 class DotEntry {
   final String activityId;
   final Color color;

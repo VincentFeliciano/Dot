@@ -7,6 +7,7 @@ import '../app_colors.dart';
 import '../widgets/date_panel.dart';
 import '../widgets/dot_matrix_panel.dart';
 import '../widgets/activity_modal.dart';
+import '../widgets/history_modal.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final List<Activity?> _slots = [null, null, null];
   final List<DotEntry> _dots = [];
+  final List<DaySnapshot> _snapshots = [];
   late DateTime _now;
   late Timer _timer;
 
@@ -35,26 +37,78 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final slotsJson = prefs.getString('slots');
     final dotsJson = prefs.getString('dots');
-    if (slotsJson != null || dotsJson != null) {
-      setState(() {
-        if (slotsJson != null) {
-          final list = jsonDecode(slotsJson) as List;
-          for (int i = 0; i < 3; i++) {
-            _slots[i] = list[i] == null ? null : Activity.fromJson(list[i] as Map<String, dynamic>);
+    final snapshotsJson = prefs.getString('snapshots');
+
+    final today = DateTime.now();
+    final todayKey = DateTime(today.year, today.month, today.day);
+
+    setState(() {
+      if (slotsJson != null) {
+        final list = jsonDecode(slotsJson) as List;
+        for (int i = 0; i < 3; i++) {
+          _slots[i] = list[i] == null ? null : Activity.fromJson(list[i] as Map<String, dynamic>);
+        }
+      }
+      if (snapshotsJson != null) {
+        final list = jsonDecode(snapshotsJson) as List;
+        _snapshots.addAll(list.map((e) => DaySnapshot.fromJson(e as Map<String, dynamic>)));
+      }
+      if (dotsJson != null) {
+        final allDots = (jsonDecode(dotsJson) as List)
+            .map((e) => DotEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+        // Archive dots from previous days
+        final oldDots = allDots.where((d) {
+          final day = DateTime(d.timestamp.year, d.timestamp.month, d.timestamp.day);
+          return day.isBefore(todayKey);
+        }).toList();
+
+        if (oldDots.isNotEmpty) {
+          // Group by date and create snapshots
+          final byDay = <DateTime, List<DotEntry>>{};
+          for (final d in oldDots) {
+            final key = DateTime(d.timestamp.year, d.timestamp.month, d.timestamp.day);
+            byDay.putIfAbsent(key, () => []).add(d);
+          }
+          for (final entry in byDay.entries) {
+            final alreadySaved = _snapshots.any((s) =>
+              DateTime(s.date.year, s.date.month, s.date.day) == entry.key);
+            if (!alreadySaved) {
+              _snapshots.add(DaySnapshot(date: entry.key, dots: entry.value));
+            }
           }
         }
-        if (dotsJson != null) {
-          final list = jsonDecode(dotsJson) as List;
-          _dots.addAll(list.map((e) => DotEntry.fromJson(e as Map<String, dynamic>)));
-        }
-      });
-    }
+
+        _dots.addAll(allDots.where((d) {
+          final day = DateTime(d.timestamp.year, d.timestamp.month, d.timestamp.day);
+          return !day.isBefore(todayKey);
+        }));
+      }
+    });
+    _save();
   }
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('slots', jsonEncode(_slots.map((s) => s?.toJson()).toList()));
     await prefs.setString('dots', jsonEncode(_dots.map((d) => d.toJson()).toList()));
+    await prefs.setString('snapshots', jsonEncode(_snapshots.map((s) => s.toJson()).toList()));
+  }
+
+  void _showHistory() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (ctx, controller) => HistoryModal(snapshots: _snapshots),
+      ),
+    );
   }
 
   @override
@@ -185,23 +239,39 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kLime,
-      body: Row(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Stack(
         children: [
-          Expanded(
-            flex: 45,
-            child: DatePanel(
-              now: _now,
-              selectorSlots: _slots,
-              completedCount: _dots.length,
-              onSelectorTapped: _onSelectorTapped,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 45,
+                child: DatePanel(
+                  now: _now,
+                  selectorSlots: _slots,
+                  completedCount: _dots.length,
+                  onSelectorTapped: _onSelectorTapped,
+                ),
+              ),
+              Expanded(
+                flex: 55,
+                child: DotMatrixPanel(dotEntries: _dots, now: _now),
+              ),
+            ],
           ),
-          Expanded(
-            flex: 55,
-            child: DotMatrixPanel(dotEntries: _dots, now: _now),
-
+          // History arrow — top-right corner
+          Positioned(
+            top: 16,
+            right: 12,
+            child: GestureDetector(
+              onTap: _showHistory,
+              child: const SizedBox(
+                width: 20,
+                height: 20,
+                child: Icon(Icons.arrow_back_ios_new, size: 20, color: kNavy),
+              ),
+            ),
           ),
         ],
       ),
