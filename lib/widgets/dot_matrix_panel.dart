@@ -1,78 +1,84 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/activity.dart';
 import '../app_colors.dart';
 import 'date_panel.dart' show kLimeDark;
 
 const Color _kDotGray = Color(0xFFCCCCCC);
+const int _kCols = 10;
+const int _kRows = 24;
+const double _kSpacing = 2.0;
 
 class DotMatrixPanel extends StatelessWidget {
   final List<DotEntry> dotEntries;
   final DateTime now;
-  final int columns;
 
   const DotMatrixPanel({
     super.key,
     required this.dotEntries,
     required this.now,
-    this.columns = 8,
   });
 
   double _timeFraction() {
     return (now.hour * 60.0 + now.minute) / (24 * 60);
   }
 
+  // Maps grid index (row*10+col) → color for filled dots.
+  // Row = hour (0-23), col = minute-slot (floor(minute/6), 0-9).
+  // If target slot is taken, shifts right until an empty slot is found.
+  Map<int, Color> _buildCellMap() {
+    final map = <int, Color>{};
+    for (final entry in dotEntries) {
+      final row = entry.timestamp.hour.clamp(0, 23);
+      int col = (entry.timestamp.minute / 6).floor().clamp(0, 9);
+      while (col < _kCols && map.containsKey(row * _kCols + col)) {
+        col++;
+      }
+      if (col < _kCols) {
+        map[row * _kCols + col] = entry.color;
+      }
+    }
+    return map;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      const spacing = 2.5;
       final w = constraints.maxWidth;
       final h = constraints.maxHeight;
-
-      final dotWidth = (w - spacing * (columns - 1)) / columns;
-      final rows = ((h + spacing) / (dotWidth + spacing)).floor();
-      final dotHeight = (h - spacing * (rows - 1)) / rows;
-      final totalDots = rows * columns;
-
+      final dotHeight = (h - _kSpacing * (_kRows - 1)) / _kRows;
+      final dotWidth = (w - _kSpacing * (_kCols - 1)) / _kCols;
+      final radius = BorderRadius.circular(math.min(dotWidth, dotHeight) / 2);
       final fraction = _timeFraction();
       final fillH = h * fraction;
+      final cellMap = _buildCellMap();
 
       return Stack(children: [
-        // Bright lime base — time remaining
         Container(color: kLime),
-
-        // Dark lime — elapsed time progress bar, fills from top
         Positioned(
           top: 0, left: 0, right: 0,
           height: fillH,
           child: Container(color: kLimeDark),
         ),
-
-        // M / N / E + dots on top of background
         Stack(children: [
-          // M / N / E background labels — rotated 90° counter-clockwise, behind dots
           Column(children: [
             Expanded(child: _TimeLabel('M')),
             Expanded(child: _TimeLabel('N')),
             Expanded(child: _TimeLabel('E')),
           ]),
-
-          // Dot grid on top
           GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
+              crossAxisCount: _kCols,
+              crossAxisSpacing: _kSpacing,
+              mainAxisSpacing: _kSpacing,
               mainAxisExtent: dotHeight,
             ),
-            itemCount: totalDots,
+            itemCount: _kRows * _kCols,
             itemBuilder: (ctx, index) {
-              final isFilled = index < dotEntries.length;
-              return _Dot(
-                filled: isFilled,
-                color: isFilled ? dotEntries[index].color : null,
-              );
+              final color = cellMap[index];
+              return _Dot(filled: color != null, color: color, radius: radius);
             },
           ),
         ]),
@@ -109,15 +115,16 @@ class _TimeLabel extends StatelessWidget {
 class _Dot extends StatelessWidget {
   final bool filled;
   final Color? color;
+  final BorderRadius radius;
 
-  const _Dot({required this.filled, this.color});
+  const _Dot({required this.filled, required this.radius, this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: filled ? color : _kDotGray,
-        shape: BoxShape.circle,
+        borderRadius: radius,
       ),
     );
   }

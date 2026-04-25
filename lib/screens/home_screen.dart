@@ -48,11 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       isDismissible: true,
-      builder: (ctx) => FractionallySizedBox(
-        heightFactor: 0.5,
-        alignment: Alignment.bottomCenter,
-        child: ActivityModal(
-          onCreated: (a) => setState(() => _slots[index] = a),
+      builder: (ctx) => MediaQuery(
+        data: MediaQuery.of(ctx).copyWith(viewInsets: EdgeInsets.zero),
+        child: FractionallySizedBox(
+          heightFactor: 0.5,
+          alignment: Alignment.bottomCenter,
+          child: ActivityModal(
+            onCreated: (a) => setState(() => _slots[index] = a),
+          ),
         ),
       ),
     );
@@ -150,30 +153,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kLime,
-      body: Center(
-        child: SizedBox(
-          width: 390,
-          height: 844,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 45,
-                child: DatePanel(
-                  now: _now,
-                  selectorSlots: _slots,
-                  completedCount: _dots.length,
-                  onSelectorTapped: _onSelectorTapped,
-                ),
-              ),
-              Expanded(
-                flex: 55,
-                child: DotMatrixPanel(dotEntries: _dots, now: _now),
-              ),
-            ],
+      body: Row(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            flex: 45,
+            child: DatePanel(
+              now: _now,
+              selectorSlots: _slots,
+              completedCount: _dots.length,
+              onSelectorTapped: _onSelectorTapped,
+            ),
           ),
-        ),
+          Expanded(
+            flex: 55,
+            child: DotMatrixPanel(dotEntries: _dots, now: _now),
+
+          ),
+        ],
       ),
     );
   }

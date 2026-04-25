@@ -3,14 +3,26 @@ import '../models/activity.dart';
 import '../app_colors.dart';
 
 const List<Color> kActivityColors = [
+  // DOTTYCOLORS
   kNavy,
   kRed,
   kLime,
   kCyan,
   kGreen,
-  Color(0xFFFF9800),
-  Color(0xFF9C27B0),
-  Color(0xFF795548),
+  // DOTTYCOLORS2
+  Color(0xFF000000),
+  Color(0xFF0100AB),
+  Color(0xFF00AB00),
+  Color(0xFF00AAA9),
+  Color(0xFFAB0001),
+  Color(0xFFAA00AB),
+  Color(0xFF5655FF),
+  Color(0xFF56FF56),
+  Color(0xFF54FFFE),
+  Color(0xFFFF5556),
+  Color(0xFFFE55FE),
+  Color(0xFFFEFF54),
+  Color(0xFFFFFFFF),
 ];
 
 class ActivityModal extends StatefulWidget {
@@ -48,14 +60,8 @@ class _ActivityModalState extends State<ActivityModal> {
     return Container(
       width: double.infinity,
       color: kRed,
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        top: 16,
-        left: 24,
-        right: 24,
-      ),
+      padding: const EdgeInsets.only(top: 12, left: 20, right: 20, bottom: 8),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Drag handle
@@ -63,9 +69,9 @@ class _ActivityModalState extends State<ActivityModal> {
             child: Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
+              margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.black38,
+                color: Colors.white38,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -74,13 +80,14 @@ class _ActivityModalState extends State<ActivityModal> {
           const Text(
             'NEW ACTIVITY',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 32,
               fontWeight: FontWeight.w900,
-              color: Colors.black,
-              letterSpacing: 2,
+              color: Colors.white,
+              letterSpacing: 3,
+              height: 1.0,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Name field
           TextField(
@@ -89,26 +96,27 @@ class _ActivityModalState extends State<ActivityModal> {
             textCapitalization: TextCapitalization.sentences,
             onSubmitted: (_) => _create(),
             style: const TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontWeight: FontWeight.w700,
-              fontSize: 16,
+              fontSize: 20,
             ),
             decoration: const InputDecoration(
               hintText: 'Activity name',
-              hintStyle: TextStyle(color: Colors.black45),
+              hintStyle: TextStyle(color: Colors.white54),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black54, width: 1.5),
+                borderSide: BorderSide(color: Colors.white54, width: 1.5),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black, width: 2),
+                borderSide: BorderSide(color: Colors.white, width: 2),
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          // Color picker — all on one row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Color picker — wrap grid
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
             children: kActivityColors.map((c) {
               final selected = _selectedColor == c;
               return GestureDetector(
@@ -119,40 +127,37 @@ class _ActivityModalState extends State<ActivityModal> {
                   decoration: BoxDecoration(
                     color: c,
                     shape: BoxShape.circle,
-                    border: selected
-                        ? Border.all(color: Colors.white, width: 2.5)
-                        : null,
+                    border: Border.all(
+                      color: selected ? Colors.white : Colors.white30,
+                      width: selected ? 2.5 : 1,
+                    ),
                   ),
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 28),
 
-          // Create button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _create,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
+          const Spacer(),
+
+          // Create button — large text, no background
+          GestureDetector(
+            onTap: _create,
+            child: const SizedBox(
+              width: double.infinity,
+              child: Text(
                 'CREATE',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 72,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+                  color: Colors.white,
+                  letterSpacing: 6,
+                  height: 1.0,
                 ),
               ),
             ),
           ),
+          const SizedBox(height: 4),
         ],
       ),
     );
