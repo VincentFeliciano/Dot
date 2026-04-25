@@ -252,6 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   selectorSlots: _slots,
                   completedCount: _dots.length,
                   onSelectorTapped: _onSelectorTapped,
+                  onHistoryTap: _showHistory,
                 ),
               ),
               Expanded(
@@ -259,19 +260,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: DotMatrixPanel(dotEntries: _dots, now: _now),
               ),
             ],
-          ),
-          // History arrow — top-right corner
-          Positioned(
-            top: 16,
-            right: 12,
-            child: GestureDetector(
-              onTap: _showHistory,
-              child: const SizedBox(
-                width: 20,
-                height: 20,
-                child: Icon(Icons.arrow_back_ios_new, size: 20, color: kNavy),
-              ),
-            ),
           ),
         ],
       ),

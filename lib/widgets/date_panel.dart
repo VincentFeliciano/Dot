@@ -10,6 +10,7 @@ class DatePanel extends StatelessWidget {
   final List<Activity?> selectorSlots;
   final int completedCount;
   final void Function(int) onSelectorTapped;
+  final VoidCallback onHistoryTap;
 
   const DatePanel({
     super.key,
@@ -17,6 +18,7 @@ class DatePanel extends StatelessWidget {
     required this.selectorSlots,
     required this.completedCount,
     required this.onSelectorTapped,
+    required this.onHistoryTap,
   });
 
   double _timeFraction() {
@@ -106,6 +108,16 @@ class DatePanel extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+        ),
+
+        // History arrow — above the clock
+        Positioned(
+          bottom: redH + 52,
+          left: 8,
+          child: GestureDetector(
+            onTap: onHistoryTap,
+            child: const Icon(Icons.arrow_back_ios_new, size: 25, color: kNavy),
           ),
         ),
 
