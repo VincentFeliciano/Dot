@@ -117,7 +117,17 @@ class DatePanel extends StatelessWidget {
           left: 8,
           child: GestureDetector(
             onTap: onHistoryTap,
-            child: const Icon(Icons.arrow_back_ios_new, size: 25, color: kNavy),
+            child: Text(
+              String.fromCharCode(Icons.arrow_back_ios_new.codePoint),
+              style: TextStyle(
+                fontFamily: Icons.arrow_back_ios_new.fontFamily,
+                package: Icons.arrow_back_ios_new.fontPackage,
+                fontSize: 35,
+                fontWeight: FontWeight.w800,
+                color: kNavy.withValues(alpha: 0.4),
+                height: 1.0,
+              ),
+            ),
           ),
         ),
 
