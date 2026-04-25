@@ -114,7 +114,7 @@ class DatePanel extends StatelessWidget {
         // History arrow — above the clock
         Positioned(
           bottom: redH + 52,
-          left: 8,
+          left: 0,
           child: GestureDetector(
             onTap: onHistoryTap,
             child: Text(
@@ -122,7 +122,7 @@ class DatePanel extends StatelessWidget {
               style: TextStyle(
                 fontFamily: Icons.arrow_back_ios_new.fontFamily,
                 package: Icons.arrow_back_ios_new.fontPackage,
-                fontSize: 35,
+                fontSize: 60,
                 fontWeight: FontWeight.w800,
                 color: kNavy.withValues(alpha: 0.4),
                 height: 1.0,
