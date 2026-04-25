@@ -46,9 +46,10 @@ class DotMatrixPanel extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
       final h = constraints.maxHeight;
-      final dotHeight = (h - _kSpacing * (_kRows - 1)) / _kRows;
-      final dotWidth = (w - _kSpacing * (_kCols - 1)) / _kCols;
-      final radius = BorderRadius.circular(math.min(dotWidth, dotHeight) / 2);
+      // Dots are square based on column width; row spacing expands to fill height
+      final dotSize = (w - _kSpacing * (_kCols - 1)) / _kCols;
+      final rowSpacing = (h - dotSize * _kRows) / (_kRows - 1);
+      final radius = BorderRadius.circular(dotSize / 2);
       final fraction = _timeFraction();
       final fillH = h * fraction;
       final cellMap = _buildCellMap();
@@ -72,8 +73,8 @@ class DotMatrixPanel extends StatelessWidget {
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: _kCols,
               crossAxisSpacing: _kSpacing,
-              mainAxisSpacing: _kSpacing,
-              mainAxisExtent: dotHeight,
+              mainAxisSpacing: rowSpacing,
+              mainAxisExtent: dotSize,
             ),
             itemCount: _kRows * _kCols,
             itemBuilder: (ctx, index) {
